@@ -2,12 +2,12 @@
 
 int PID_PWM=0;
 
-
-/******************�й�imu�ı���************************/
+//TONYHEGUAGUA夺回控制权
+/******************锟叫癸拷imu锟侥憋拷锟斤拷************************/
 float imu_yaw;
 /*******************************************************/
 
-/******************�йس������ı���*********************/
+/******************锟叫关筹拷锟斤拷锟斤拷锟侥憋拷锟斤拷*********************/
 uint16_t sonic_uart2;
 uint16_t sonic_uart4;
 uint16_t sonic_uart5;
@@ -15,13 +15,13 @@ uint16_t sonic_uart6;
 /*******************************************************/
 
 
-/****************����ٶ�*******************************/
+/****************锟斤拷锟斤拷俣锟�*******************************/
 uint8_t Left_Motor_Speed_Global = 100;
 uint8_t Right_Motor_Speed_Global = 100;
 uint8_t Top_Motor_Speed_Global = 100;
 /*******************************************************/
 
-/**************** ������(usart3)�йصı��� *************/
+/**************** 锟斤拷锟斤拷锟斤拷(usart3)锟叫关的憋拷锟斤拷 *************/
 
 uint8_t BLE_Update_Flag = 0;
 
@@ -43,37 +43,37 @@ BLE_Motor_State BLE_Moter_Flag;
 
 
 
-// ��ʼ����������������
+// 锟斤拷始锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷
 #define Start_Task_Priority 1
 #define Start_Stack_Size 128
 TaskHandle_t Start_Task_Handler;
 void Start_Task(void * pvParameters );
 
-// ��ȡ��ˮ����������
+// 锟斤拷取锟斤拷水锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷
 #define Water_Task_Priority 1
 #define Water_Stack_Size 128
 TaskHandle_t Water_Task_Handler;
 void Water_Task(void * pvParameters );
 
-// ����������������ȡ���ɣ�����
+// 锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷取锟斤拷锟缴ｏ拷锟斤拷锟斤拷
 #define Ultrasonic_Task_Priority 1
 #define Ultrasonic_Stack_Size 128
 TaskHandle_t Ultrasonic_Task_Handler;
 void Ultrasonic_Task( void * pvParameters );
 
-// ����������������������������
+// 锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷
 #define Ultrasonic_Process_Task_Priority 1
 #define Ultrasonic_Process_Stack_Size 128
 TaskHandle_t Ultrasonic_Process_Task_Handler;
 void Ultrasonic_Process_Task( void * pvParameters );
 
-//�ƶ���ǰ�������ˡ���ת����ת������
+//锟狡讹拷锟斤拷前锟斤拷锟斤拷锟斤拷锟剿★拷锟斤拷转锟斤拷锟斤拷转锟斤拷锟斤拷锟斤拷
 #define Move_Task_Priority 1
 #define Move_Stack_Size 128
 TaskHandle_t Move_Task_Handler;
 void Move_Task( void * pvParameters );
 
-//IMU����
+//IMU锟斤拷锟斤拷
 #define IMU_Task_Priority 3
 #define IMU_Task_Stack_Size 512
 TaskHandle_t IMU_Task_Handler;
@@ -85,7 +85,7 @@ void IMU_Task( void * pvParameters );
 TaskHandle_t IMU_Tx_Task_Handler;
 void IMU_Tx_Task( void * pvParameters );
 
-//�ƶ�ƽ���˲�����
+//锟狡讹拷平锟斤拷锟剿诧拷锟斤拷锟斤拷
 #define MAF_Task_Priority 1
 #define MAF_Task_Stack_Size 256
 TaskHandle_t MAF_Task_Handler;
@@ -93,20 +93,20 @@ void MAF_Task( void * pvParamerters );
 
 
 /**
- *@breaf  ����1�ص�����
- *@param  packet:����1�Ľ��ܻ�����
- *@param  size:����1�Ľ��ջ�������С
- *@retval ��
+ *@breaf  锟斤拷锟斤拷1锟截碉拷锟斤拷锟斤拷
+ *@param  packet:锟斤拷锟斤拷1锟侥斤拷锟杰伙拷锟斤拷锟斤拷
+ *@param  size:锟斤拷锟斤拷1锟侥斤拷锟秸伙拷锟斤拷锟斤拷锟斤拷小
+ *@retval 锟斤拷
  */
 void UART1_rxCallback(u8 *packet, u16 size)
 {
     
 }
 /**
- *@breaf  ����2�ص�����
- *@param  packet:����2�Ľ��ܻ�����
- *@param  size:����2�Ľ��ջ�������С
- *@retval ��
+ *@breaf  锟斤拷锟斤拷2锟截碉拷锟斤拷锟斤拷
+ *@param  packet:锟斤拷锟斤拷2锟侥斤拷锟杰伙拷锟斤拷锟斤拷
+ *@param  size:锟斤拷锟斤拷2锟侥斤拷锟秸伙拷锟斤拷锟斤拷锟斤拷小
+ *@retval 锟斤拷
  */
 void UART2_rxCallback(u8 *packet, u16 size)
 {
@@ -118,10 +118,10 @@ void UART2_rxCallback(u8 *packet, u16 size)
 	}
 }
 /**
- *@breaf  ����3�ص�����
- *@param  packet:����3�Ľ��ܻ�����
- *@param  size:����3�Ľ��ջ�������С
- *@retval ��
+ *@breaf  锟斤拷锟斤拷3锟截碉拷锟斤拷锟斤拷
+ *@param  packet:锟斤拷锟斤拷3锟侥斤拷锟杰伙拷锟斤拷锟斤拷
+ *@param  size:锟斤拷锟斤拷3锟侥斤拷锟秸伙拷锟斤拷锟斤拷锟斤拷小
+ *@retval 锟斤拷
  */
 void UART3_rxCallback(u8 *packet, u16 size)
 {
@@ -164,10 +164,10 @@ void UART3_rxCallback(u8 *packet, u16 size)
 	}
 }
 /**
- *@breaf  ����4�ص�����
- *@param  packet:����4�Ľ��ܻ�����
- *@param  size:����4�Ľ��ջ�������С
- *@retval ��
+ *@breaf  锟斤拷锟斤拷4锟截碉拷锟斤拷锟斤拷
+ *@param  packet:锟斤拷锟斤拷4锟侥斤拷锟杰伙拷锟斤拷锟斤拷
+ *@param  size:锟斤拷锟斤拷4锟侥斤拷锟秸伙拷锟斤拷锟斤拷锟斤拷小
+ *@retval 锟斤拷
  */
 void UART4_rxCallback(u8 *packet, u16 size)
 {
@@ -449,7 +449,7 @@ void IMU_Tx_Task( void * pvParameters )
 
 
 
-////�ƶ�ƽ���˲�
+////锟狡讹拷平锟斤拷锟剿诧拷
 //#define MAF_Task_Priority 1
 //#define MAF_Task_Stack_Size 256
 //TaskHandle_t MAF_Task_Handler;

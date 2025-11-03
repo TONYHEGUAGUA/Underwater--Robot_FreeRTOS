@@ -3,11 +3,11 @@
 int PID_PWM=0;
 
 //TONYHEGUAGUA夺回控制权
-/******************锟叫癸拷imu锟侥憋拷锟斤拷************************/
+/******************关于imu的变量************************/
 float imu_yaw;
 /*******************************************************/
 
-/******************锟叫关筹拷锟斤拷锟斤拷锟侥憋拷锟斤拷*********************/
+/******************关于超声波的变量*********************/
 uint16_t sonic_uart2;
 uint16_t sonic_uart4;
 uint16_t sonic_uart5;
@@ -15,13 +15,13 @@ uint16_t sonic_uart6;
 /*******************************************************/
 
 
-/****************锟斤拷锟斤拷俣锟�*******************************/
+/****************关于电机速度的变量*******************************/
 uint8_t Left_Motor_Speed_Global = 100;
 uint8_t Right_Motor_Speed_Global = 100;
 uint8_t Top_Motor_Speed_Global = 100;
 /*******************************************************/
 
-/**************** 锟斤拷锟斤拷锟斤拷(usart3)锟叫关的憋拷锟斤拷 *************/
+/**************** 蓝牙模块(usart3)有关的变量 *************/
 
 uint8_t BLE_Update_Flag = 0;
 
@@ -43,37 +43,37 @@ BLE_Motor_State BLE_Moter_Flag;
 
 
 
-// 锟斤拷始锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷
+// 初始化和创建任务
 #define Start_Task_Priority 1
 #define Start_Stack_Size 128
 TaskHandle_t Start_Task_Handler;
 void Start_Task(void * pvParameters );
 
-// 锟斤拷取锟斤拷水锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷
+// 获取进水传感器数据
 #define Water_Task_Priority 1
 #define Water_Stack_Size 128
 TaskHandle_t Water_Task_Handler;
 void Water_Task(void * pvParameters );
 
-// 锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷取锟斤拷锟缴ｏ拷锟斤拷锟斤拷
+// 超声波传感器获取数据任务
 #define Ultrasonic_Task_Priority 1
 #define Ultrasonic_Stack_Size 128
 TaskHandle_t Ultrasonic_Task_Handler;
 void Ultrasonic_Task( void * pvParameters );
 
-// 锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷
+// 超声波数据处理任务
 #define Ultrasonic_Process_Task_Priority 1
 #define Ultrasonic_Process_Stack_Size 128
 TaskHandle_t Ultrasonic_Process_Task_Handler;
 void Ultrasonic_Process_Task( void * pvParameters );
 
-//锟狡讹拷锟斤拷前锟斤拷锟斤拷锟斤拷锟剿★拷锟斤拷转锟斤拷锟斤拷转锟斤拷锟斤拷锟斤拷
+//移动前后左右转弯控制任务
 #define Move_Task_Priority 1
 #define Move_Stack_Size 128
 TaskHandle_t Move_Task_Handler;
 void Move_Task( void * pvParameters );
 
-//IMU锟斤拷锟斤拷
+//IMU任务
 #define IMU_Task_Priority 3
 #define IMU_Task_Stack_Size 512
 TaskHandle_t IMU_Task_Handler;
@@ -85,7 +85,7 @@ void IMU_Task( void * pvParameters );
 TaskHandle_t IMU_Tx_Task_Handler;
 void IMU_Tx_Task( void * pvParameters );
 
-//锟狡讹拷平锟斤拷锟剿诧拷锟斤拷锟斤拷
+//移动平均滤波任务
 #define MAF_Task_Priority 1
 #define MAF_Task_Stack_Size 256
 TaskHandle_t MAF_Task_Handler;
@@ -93,20 +93,20 @@ void MAF_Task( void * pvParamerters );
 
 
 /**
- *@breaf  锟斤拷锟斤拷1锟截碉拷锟斤拷锟斤拷
- *@param  packet:锟斤拷锟斤拷1锟侥斤拷锟杰伙拷锟斤拷锟斤拷
- *@param  size:锟斤拷锟斤拷1锟侥斤拷锟秸伙拷锟斤拷锟斤拷锟斤拷小
- *@retval 锟斤拷
+ *@breaf  串口1回调函数
+ *@param  packet:串口1的接收缓冲区
+ *@param  size:串口1的接收缓冲区大小
+ *@retval 无
  */
 void UART1_rxCallback(u8 *packet, u16 size)
 {
     
 }
 /**
- *@breaf  锟斤拷锟斤拷2锟截碉拷锟斤拷锟斤拷
- *@param  packet:锟斤拷锟斤拷2锟侥斤拷锟杰伙拷锟斤拷锟斤拷
- *@param  size:锟斤拷锟斤拷2锟侥斤拷锟秸伙拷锟斤拷锟斤拷锟斤拷小
- *@retval 锟斤拷
+ *@breaf  串口2回调函数
+ *@param  packet:串口2的接收缓冲区
+ *@param  size:串口2的接收缓冲区大小
+ *@retval 无
  */
 void UART2_rxCallback(u8 *packet, u16 size)
 {
@@ -118,10 +118,10 @@ void UART2_rxCallback(u8 *packet, u16 size)
 	}
 }
 /**
- *@breaf  锟斤拷锟斤拷3锟截碉拷锟斤拷锟斤拷
- *@param  packet:锟斤拷锟斤拷3锟侥斤拷锟杰伙拷锟斤拷锟斤拷
- *@param  size:锟斤拷锟斤拷3锟侥斤拷锟秸伙拷锟斤拷锟斤拷锟斤拷小
- *@retval 锟斤拷
+ *@breaf  串口3回调函数
+ *@param  packet:串口3的接收缓冲区
+ *@param  size:串口3的接收缓冲区大小
+ *@retval 无
  */
 void UART3_rxCallback(u8 *packet, u16 size)
 {
@@ -164,10 +164,10 @@ void UART3_rxCallback(u8 *packet, u16 size)
 	}
 }
 /**
- *@breaf  锟斤拷锟斤拷4锟截碉拷锟斤拷锟斤拷
- *@param  packet:锟斤拷锟斤拷4锟侥斤拷锟杰伙拷锟斤拷锟斤拷
- *@param  size:锟斤拷锟斤拷4锟侥斤拷锟秸伙拷锟斤拷锟斤拷锟斤拷小
- *@retval 锟斤拷
+ *@breaf  串口4回调函数
+ *@param  packet:串口4的接收缓冲区
+ *@param  size:串口4的接收缓冲区大小
+ *@retval 无
  */
 void UART4_rxCallback(u8 *packet, u16 size)
 {
@@ -449,7 +449,7 @@ void IMU_Tx_Task( void * pvParameters )
 
 
 
-////锟狡讹拷平锟斤拷锟剿诧拷
+////移动平均滤波
 //#define MAF_Task_Priority 1
 //#define MAF_Task_Stack_Size 256
 //TaskHandle_t MAF_Task_Handler;

@@ -35,7 +35,8 @@ typedef enum
 	Close_Top_Motor_Flag,
 	Speed_Up_Flag,
 	Slow_Down_Flag,
-	Stop_Motor_Flag
+	Stop_Motor_Flag,
+	Top_Stop_Flag
 }BLE_Motor_State;
 BLE_Motor_State BLE_Moter_Flag;
 /*******************************************************/
@@ -149,6 +150,10 @@ void UART3_rxCallback(u8 *packet, u16 size)
 	else if(packet[0] == 'Q')
 	{
 		BLE_Moter_Flag = Close_Top_Motor_Flag ;
+	}
+	else if(packet[0] == '%')
+	{
+		BLE_Moter_Flag = Top_Stop_Flag;
 	}
 	else if(packet[0] == '3')
 	{
@@ -373,8 +378,12 @@ void Move_Task( void * pvParameters )
 						Right_Motor_Speed_Global = 0;
 					break;
 				case Stop_Motor_Flag:
-					Set_Motor_Stop();
+					Set_Motor(Left,FORWARD,0);
+					Set_Motor(Right,FORWARD,0);
 					break;
+			case Top_Stop_Flag:
+				Close_Top();
+				break;
 			}
 		}
 	}

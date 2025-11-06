@@ -82,7 +82,7 @@ void IMU_Task( void * pvParameters );
 
 // IMU 20Hz UART3 transmit
 #define IMU_Tx_Task_Priority 2
-#define IMU_Tx_Task_Stack_Size 256
+#define IMU_Tx_Task_Stack_Size 512  // 增加栈大小，避免sprintf栈溢出
 TaskHandle_t IMU_Tx_Task_Handler;
 void IMU_Tx_Task( void * pvParameters );
 
@@ -101,7 +101,47 @@ void MAF_Task( void * pvParamerters );
  */
 void UART1_rxCallback(u8 *packet, u16 size)
 {
-    
+	BLE_Update_Flag = 1;
+    if(packet[0] == 'A')
+	{
+		BLE_Moter_Flag = Forward_Flag ;
+	}
+	else if(packet[0] == 'B')
+	{
+		BLE_Moter_Flag = Backward_Flag ;
+	}
+	else if(packet[0] == 'C')
+	{
+		BLE_Moter_Flag = Right_Flag ;
+	}
+	else if(packet[0] == 'D')
+	{
+		BLE_Moter_Flag = Left_Flag ;
+	}
+	else if(packet[0] == '!')
+	{
+		BLE_Moter_Flag = Open_Top_Motor_Flag ;
+	}
+	else if(packet[0] == 'Q')
+	{
+		BLE_Moter_Flag = Close_Top_Motor_Flag ;
+	}
+	else if(packet[0] == '%')
+	{
+		BLE_Moter_Flag = Top_Stop_Flag;
+	}
+	else if(packet[0] == '3')
+	{
+		BLE_Moter_Flag = Speed_Up_Flag ;
+	}
+	else if(packet[0] == '6')
+	{
+		BLE_Moter_Flag = Slow_Down_Flag ;
+	}
+	else if(packet[0] == '0')
+	{
+		BLE_Moter_Flag = Stop_Motor_Flag;
+	}
 }
 /**
  *@breaf  串口2回调函数
@@ -259,10 +299,11 @@ void Start_Task(void * pvParameters )
 	{
 		printf("ultrasonic task create error \r\n");
 	}
-	if(pdPASS != xTaskCreate(Ultrasonic_Process_Task,"process ultrasonic data",Ultrasonic_Process_Stack_Size , NULL , Ultrasonic_Process_Task_Priority , &Ultrasonic_Task_Handler))
+	/* 停止Ultrasonic_Process_Task，因为它用printf发送距离数据，现在串口1用于IMU和指令 */
+	/* if(pdPASS != xTaskCreate(Ultrasonic_Process_Task,"process ultrasonic data",Ultrasonic_Process_Stack_Size , NULL , Ultrasonic_Process_Task_Priority , &Ultrasonic_Task_Handler))
 	{
 		printf("process ultrasonic data task create error \r\n");
-	}
+	} */
 	
 	
 	
@@ -289,7 +330,8 @@ void Water_Task(void * pvParameters )
 {
 	while(1)
 	{
-		printf("water : %d \r\n",Get_ADC_Value());
+		/* 移除打印，避免干扰串口1的IMU数据 */
+		/* printf("water : %d \r\n",Get_ADC_Value()); */
 		vTaskDelay(pdMS_TO_TICKS(1000));
 	}
 }
@@ -393,7 +435,8 @@ void IMU_Task( void * pvParameters )
 {
 	while(1)
 	{
-		printf("Current Yaw = %d\r\n" , (I2C_readreg(0x50,Yaw) *180/32768));
+		/* 移除打印，避免干扰串口1的IMU数据（IMU数据由IMU_Tx_Task发送） */
+		/* printf("Current Yaw = %d\r\n" , (I2C_readreg(0x50,Yaw) *180/32768)); */
 		vTaskDelay(2000);
 	}
 }
@@ -408,10 +451,25 @@ static u8 imu_calc_checksum(const u8 *data, u16 len)
 	return cs;
 }
 
-static void imu_format_and_send_on_uart3(void)
+static void imu_format_and_send_on_uart1(void)
 {
 	/* Read raw yaw, convert to centi-degrees to avoid float */
 	int32_t raw = I2C_readreg(0x50, Yaw);
+	
+	/* 检查I2C读取是否失败（返回-1表示失败）*/
+	if(raw == -1)
+	{
+		/* I2C读取失败，发送错误帧或跳过本次发送 */
+		/* 可选：发送错误帧 "$IMU,ERR,XX\r\n" */
+		return;  // 跳过本次发送，避免发送错误数据
+	}
+	
+	/* 检查yaw值是否在合理范围内（-32768到32767对应-180到180度）*/
+	if(raw < -32768 || raw > 32767)
+	{
+		return;  // 数据异常，跳过发送
+	}
+	
 	int32_t yaw_centi = (int32_t)(raw * 18000 / 32768); /* -18000..18000 -> -180.00..180.00 */
 
 	/* Build payload: IMU,<yaw> where <yaw> has two decimals */
@@ -438,17 +496,53 @@ static void imu_format_and_send_on_uart3(void)
 
 	/* Build final frame: $<payload>,<CS>\r\n with CS as 2-digit uppercase hex */
 	char frame[48];
-	sprintf(frame, "$%s,%02X\r\n", payload, cs);
-	UART3_printf((u8*)frame, (u16)strlen(frame));
+	int len = sprintf(frame, "$%s,%02X\r\n", payload, cs);
+	if(len > 0 && len < (int)sizeof(frame))
+	{
+		/* Send with timeout to avoid permanent blocking in case of UART stall */
+		extern int uart1_send_with_timeout(const u8 *buf, u16 len, u32 timeout_loop);
+		if(uart1_send_with_timeout((const u8*)frame, (u16)len, 100000) != 0)
+		{
+			/* 如果UART1发送超时，使用UART1_printf作为备选（但可能阻塞） */
+			UART1_printf((u8*)frame, (u16)len);
+		}
+	}
 }
 
 void IMU_Tx_Task( void * pvParameters )
 {
 	while(1)
 	{
-		imu_format_and_send_on_uart3();
+		imu_format_and_send_on_uart1();
 		vTaskDelay(pdMS_TO_TICKS(50));
 	}
+}
+
+/* Bounded-time UART1 sender to avoid permanent blocking */
+int uart1_send_with_timeout(const u8 *buf, u16 len, u32 timeout_loop)
+{
+	for(u16 i = 0; i < len; i++)
+	{
+		u32 wait = timeout_loop;
+		while(USART_GetFlagStatus(USART1, USART_FLAG_TXE) == RESET)
+		{
+			if(wait-- == 0)
+			{
+				return -1; /* TXE timeout */
+			}
+		}
+		USART_SendData(USART1, buf[i]);
+	}
+	/* Wait for transmission complete */
+	u32 wait_tc = timeout_loop;
+	while(USART_GetFlagStatus(USART1, USART_FLAG_TC) == RESET)
+	{
+		if(wait_tc-- == 0)
+		{
+			return -2; /* TC timeout */
+		}
+	}
+	return 0;
 }
 
 //void Sonic_AutoMove_Task( void * pvParameters )

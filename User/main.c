@@ -451,6 +451,21 @@ static u8 imu_calc_checksum(const u8 *data, u16 len)
 	return cs;
 }
 
+static void uart1_send_frame(const char *payload)
+{
+	u8 cs = imu_calc_checksum((const u8*)payload, (u16)strlen(payload));
+	char frame[96];
+	int len = sprintf(frame, "$%s,%02X\r\n", payload, cs);
+	if(len > 0 && len < (int)sizeof(frame))
+	{
+		extern int uart1_send_with_timeout(const u8 *buf, u16 len, u32 timeout_loop);
+		if(uart1_send_with_timeout((const u8*)frame, (u16)len, 100000) != 0)
+		{
+			UART1_printf((u8*)frame, (u16)len);
+		}
+	}
+}
+
 static void imu_format_and_send_on_uart1(void)
 {
 	/* Read raw yaw, convert to centi-degrees to avoid float */
@@ -492,21 +507,24 @@ static void imu_format_and_send_on_uart1(void)
 	}
 
 	/* Checksum over payload (without '$') */
-	u8 cs = imu_calc_checksum((const u8*)payload, (u16)strlen(payload));
+	uart1_send_frame(payload);
+}
 
-	/* Build final frame: $<payload>,<CS>\r\n with CS as 2-digit uppercase hex */
-	char frame[48];
-	int len = sprintf(frame, "$%s,%02X\r\n", payload, cs);
-	if(len > 0 && len < (int)sizeof(frame))
-	{
-		/* Send with timeout to avoid permanent blocking in case of UART stall */
-		extern int uart1_send_with_timeout(const u8 *buf, u16 len, u32 timeout_loop);
-		if(uart1_send_with_timeout((const u8*)frame, (u16)len, 100000) != 0)
-		{
-			/* 如果UART1发送超时，使用UART1_printf作为备选（但可能阻塞） */
-			UART1_printf((u8*)frame, (u16)len);
-		}
-	}
+static void sonar_format_and_send_on_uart1(void)
+{
+	uint16_t dist_uart2 = Sonar_Get_Filter_Distanse(&Sonar_Back_uart2);
+	uint16_t dist_uart4 = Sonar_Get_Filter_Distanse(&Sonar_Front_uart4);
+	uint16_t dist_uart5 = Sonar_Get_Filter_Distanse(&Sonar_Back_uart5);
+	uint16_t dist_uart6 = Sonar_Get_Filter_Distanse(&Sonar_Front_uart6);
+
+	char payload[64];
+	sprintf(payload, "SONAR,U2:%u,U4:%u,U5:%u,U6:%u",
+	        (unsigned int)dist_uart2,
+	        (unsigned int)dist_uart4,
+	        (unsigned int)dist_uart5,
+	        (unsigned int)dist_uart6);
+
+	uart1_send_frame(payload);
 }
 
 void IMU_Tx_Task( void * pvParameters )
@@ -514,6 +532,7 @@ void IMU_Tx_Task( void * pvParameters )
 	while(1)
 	{
 		imu_format_and_send_on_uart1();
+		sonar_format_and_send_on_uart1();
 		vTaskDelay(pdMS_TO_TICKS(50));
 	}
 }
